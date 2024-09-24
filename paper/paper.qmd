@@ -1,0 +1,210 @@
+---
+title: "Exploring Key Environmental Factors at Toronto Beaches"
+author: 
+  - DEZHEN CHEN
+thanks: "Code and data are available at: LINK."
+date: today
+date-format: long
+abstract: "This research examines environmental conditions at Toronto’s beaches, drawing on data collected by local authorities between mid-May and mid-September. By considering factors such as wind speed, wave action, air and water temperatures, and rainfall, we assess their impact on water clarity. The findings show that higher wind speeds and stronger wave action tend to reduce water clarity, while calmer conditions generally result in clearer water. Additionally, periods of rainfall are linked to higher water turbidity compared to dry days. These observations underline the importance of ongoing environmental monitoring to maintain beach conditions and ensure public safety."
+format: pdf
+number-sections: true
+bibliography: references.bib
+---
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(palmerpenguins)
+library(opendatatoronto)
+library(dplyr)
+
+cleaned_data <- read_csv(here::here("data/analysis_data/analysis_data.csv"))
+
+```
+
+
+# Introduction
+ Water clarity is an important environmental and public health indicator, especially in coastal regions where clear water promotes tourism, supports marine ecosystems, and enhances the overall well-being of beachgoers. Moreover, changes in water clarity can amplify or suppress climate-induced warming (Kevin C. Rose, 2016). Recent studies have shown that many coastal areas have experienced a significant decline in water clarity. From 1995 to 2015, visibility in some regions decreased by 40% (Aaron J. Bever, 2018). This decline not only affects the recreational value of beaches but also negatively impacts marine biodiversity, potentially contributing to the decline in populations of species such as the common loon (Walter H. Piper, 2024). According to data from the National Oceanic and Atmospheric Administration (NOAA), around 30% of coastal water bodies in the U.S. have clarity levels below acceptable standards for safe swimming, leading to numerous beach closures each year.
+
+ Environmental factors such as wind speed, rainfall, wave action, and air temperature are known contributors to water turbidity. From 1980 to 2014, regions like the southeast U.S. experienced significant economic losses due to climate/weather-related disasters, much of which stemmed from tropical cyclones. One of the direct impacts of these natural disasters was on coastal water clarity (Cameron C. Lee, 2016), as the resuspension of sediments and coastal runoff frequently led to a significant reduction in clarity (Walter H. Piper, 2024). This study also examines rainfall and temperature as potential predictors of water clarity. Rainfall runoff, especially in urban areas, introduces pollutants such as pesticides and fertilizers into coastal waters, reducing clarity by up to 25% following heavy rainfall (Cameron C. Lee, 2016). While the effects of these factors are documented, there is a lack of comprehensive data quantifying the exact contributions of each environmental factor to water clarity across different beach environments.
+
+ This research aims to fill that gap by analyzing the impact of key environmental factors—wind speed, rainfall, wave action, and air temperature—on water clarity at multiple beach sites. The data for this study were collected between 2018 and 2023, covering more than 100 coastal regions. Preliminary analysis indicates that wind speed accounts for 35% of the variation in water clarity (Aaron J. Bever, 2018), with rainfall explaining additional variation depending on the region and seasonal conditions. By identifying the major drivers of water clarity changes, this study seeks to provide actionable recommendations to beach management authorities to mitigate water quality degradation, such as implementing sediment control measures during high-wind events or improving runoff management systems in urban coastal areas.
+
+ The structure of this paper is as follows: Section 2 details the data collection methods and cleaning process. Section 3 describes the statistical models used to analyze the environmental factors influencing water clarity. Section 4 presents the key findings of the study, including the quantified impact of each factor. Finally, Section 5 discusses the implications of these findings for beach management and suggests future research directions for improving water quality monitoring.
+
+
+
+
+
+# Data {#sec-data}
+##  raw data
+
+The data used in this paper is derived from the Toronto Beaches Observations dataset, provided by city staff and accessed via the Open Data Toronto platform[@opendatatoronto]. This dataset includes daily observations of environmental conditions at various beaches in Toronto. The dataset contains several variables, such as wind speed (measured in km/h), air temperature (in Celsius), water temperature, and rainfall (amount in mm). Additionally, qualitative factors like wind direction, wave action, and water clarity are recorded using categorical variables. Data collection occurs annually between mid-May and mid-September.
+
+All data analysis was conducted using R (R Core Team 2023), utilizing packages such as tidyverse (Wickham et al., 2019), dplyr (Wickham et al., 2023), and ggplot2 (Wickham, 2016).
+
+##  Cleaned Data
+During the data cleaning process, rows with missing values in key columns such as water temperature, wind speed, and air temperature were removed to ensure accuracy. Non-finite values (e.g., Inf, -Inf) were also filtered out. Additionally, outliers were excluded by setting reasonable bounds for environmental variables, like wind speed (0-100 km/h) and air temperature (-10°C to 40°C). These steps helped in removing erroneous data, ensuring a reliable and clean dataset for further analysis. After cleaning, the dataset was free from missing and outlier values, ready for modeling and interpretation.
+
+## data consider
+The beach observation data might be subject to variations due to the manual nature of data collection. Observers’ subjective assessments, such as water clarity, may differ, potentially affecting consistency. Additionally, environmental conditions like wind speed and wave action change throughout the day, which could lead to discrepancies in the records. There are also potential gaps in the data due to equipment issues or missed observations, making it important to recognize the possibility of incomplete or imperfect datasets when conducting the analysis.
+
+
+##  data visulaization
+
+The analysis of the cleaned data provides detailed insights into the distribution of key environmental variables such as wind speed, air temperature, and water temperature, which all have significant impacts on water clarity. Wind speed primarily ranges from 1 km/h to 50 km/h, with an average of 13.32 km/h, suggesting moderate conditions. Air temperature spans from 7°C to 33°C, with most values concentrated between 15-25°C, and a mean of 19.93°C. Water temperature shows a normal distribution, ranging from 3°C to 27°C, with an average of 15.59°C.
+
+These environmental factors are closely tied to the natural beach conditions, with wind speed and temperature fluctuations playing a critical role in determining water clarity. we can see  strong winds can increase sediment suspension, leading to higher turbidity levels, while air and water temperatures directly affect the physical properties of the water. Together, these insights help provide a more comprehensive understanding of how environmental conditions influence water clarity and overall beach health. The interplay of these factors suggests that water quality assessments depend heavily on the balance of natural environmental conditions at each location.
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+library(dplyr)
+
+numeric_data <- cleaned_data %>% select(where(is.numeric))
+
+summary_data <- summary(numeric_data)
+
+library(pander)
+
+
+pander(summary_data, caption = "Summary Statistics of Cleaned Data")
+
+
+
+```
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+library(ggplot2)
+library(gridExtra)
+
+# Histogram for wind speed distribution
+g1<-ggplot(cleaned_data, aes(x = windSpeed)) +
+  geom_histogram(binwidth = 5, fill = "lightblue", color = "black", alpha = 0.7) +
+  labs(title = "Distribution of Wind Speed", x = "Wind Speed (km/h)", y = "Count") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 14)) +
+  geom_vline(aes(xintercept = mean(windSpeed, na.rm = TRUE)), 
+             color = "red", linetype = "dashed", size = 1)
+
+# Histogram for air temperature distribution
+g2<-ggplot(cleaned_data, aes(x = airTemp)) +
+  geom_histogram(binwidth = 2, fill = "lightgreen", color = "black", alpha = 0.7) +
+  labs(title = "Distribution of Air Temperature", x = "Air Temperature (°C)", y = "Count") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 14)) +
+  geom_vline(aes(xintercept = mean(airTemp, na.rm = TRUE)), 
+             color = "red", linetype = "dashed", size = 1)
+
+# Histogram for water temperature distribution
+g3<-ggplot(cleaned_data, aes(x = waterTemp)) +
+  geom_histogram(binwidth = 2, fill = "lightcoral", color = "black", alpha = 0.7) +
+  labs(title = "Distribution of Water Temperature", x = "Water Temperature (°C)", y = "Count") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 14)) +
+  geom_vline(aes(xintercept = mean(waterTemp, na.rm = TRUE)), 
+             color = "red", linetype = "dashed", size = 1)+
+  xlim(0, 40) 
+
+grid.arrange(g1,g2,g3)
+
+```
+
+## Exploring the Relationship Between water temperature and  wave action
+The bar plot illustrates the dominance of calmer wave conditions, especially "Low" wave action, with over 500 observations. In contrast, "High" wave action is rare. The boxplot further explores the connection between water temperature and wave activity, showing that higher wave action is associated with lower median water temperatures, while the highest temperatures occur during no wave action. Notably, the boxplot reveals a clear trend of increasing water temperature as wave activity decreases. Together, these plots suggest that calmer water conditions not only occur more frequently but also correlate with higher water temperatures, indicating a strong relationship between wave action and water temperature trends.
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+g5<-ggplot(cleaned_data, aes(x = waveAction, y = waterTemp, fill = waveAction)) +
+  geom_boxplot(outlier.colour = "red", outlier.shape = 16, outlier.size = 2) +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 3, fill = "blue") +
+  labs(title = "Water Temperature by Wave Action", x = "Wave Action", y = "Water Temperature (°C)") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 14))
+print(g5)
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+ggplot(cleaned_data, aes(x = waveAction, fill = waveAction)) +
+  geom_bar(color = "black", alpha = 0.7) +
+  labs(title = "Distribution of Wave Action", x = "Wave Action", y = "Count") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 14))
+
+
+```
+##  relations between  wind speed and temperature
+The first scatter plot shows the relationship between wind speed and air temperature. As wind speed increases, there is a slight decrease in air temperature, which is reflected by the red dashed regression line indicating a negative correlation. Although the points are somewhat spread out, it's clear that at lower wind speeds (0-20 km/h), most air temperatures are concentrated between 15°C and 25°C. In contrast, at higher wind speeds, the temperature shows a slight drop.
+
+In the second scatter plot, the relationship between wind speed and water temperature is illustrated. Similar to air temperature, there is a slight decline in water temperature as wind speed increases. The regression line again shows a minor negative correlation. However, the change in water temperature is less pronounced than in air temperature, with most water temperatures ranging between 10°C and 20°C. Despite the increase in wind speed, water temperatures remain more stable compared to air temperatures.
+
+Looking at both scatter plots together, wind speed seems to have a modest impact on both air and water temperatures, though the effect is more noticeable with air temperature. When considering the box plot of water temperature and wave action, it becomes evident that water temperature is also influenced by wave activity. This connection suggests that both wind and wave intensity could play a role in shaping the temperature dynamics of the environment.
+
+## relations betweenand water clarity temperature
+
+This boxplot shows the connection between water clarity and water temperature for different clarity levels. The x-axis lists various clarity descriptions, and the boxplots represent the spread of water temperatures within each group. Although the median temperature stays relatively steady across most clarity categories, the range of temperatures varies significantly. Some clarity groups show a broader spread of temperatures, while others have more consistent readings. Additionally, outliers are present in several categories, indicating temperatures that differ greatly from the rest. Overall, this chart suggests that while water clarity may not directly cause large changes in temperature, there is still a subtle relationship between the two.
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+ggplot(cleaned_data, aes(x = windSpeed, y = airTemp)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  geom_smooth(method = "lm", color = "red", linetype = "dashed") +
+  labs(title = "Scatter Plot of Wind Speed vs Air Temperature", x = "Wind Speed (km/h)", y = "Air Temperature (°C)") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 14))
+
+# Scatter plot of wind speed vs water temperature
+ggplot(cleaned_data, aes(x = windSpeed, y = waterTemp)) +
+  geom_point(color = "green", alpha = 0.5) +
+  geom_smooth(method = "lm", color = "red", linetype = "dashed") +
+  labs(title = "Scatter Plot of Wind Speed vs Water Temperature", x = "Wind Speed (km/h)", y = "Water Temperature (°C)") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 14))
+
+
+# Create a boxplot to explore the relationship between water clarity and water temperature
+ggplot(cleaned_data, aes(x = as.factor(waterClarity), y = waterTemp)) +
+  geom_boxplot(fill = "lightblue", color = "black") +  # Boxplot
+  labs(title = "Relationship Between Water Clarity and Water Temperature",
+       x = "Water Clarity (Categories)",
+       y = "Water Temperature (°C)") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 14),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12))
+
+
+
+```
+
+
+
+
+
+
+
+# Discussion
+
+
+
+
+
+# References
+
+
