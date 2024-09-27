@@ -1,0 +1,26 @@
+{
+    "id": "DF842C5B",
+    "path": "~/Documents/GitHub/beach/beach-observation/scripts/00-simulate_data.R",
+    "project_path": "scripts/00-simulate_data.R",
+    "type": "r_source",
+    "hash": "297089045",
+    "contents": "",
+    "dirty": true,
+    "created": 1727457367678.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "65,0",
+        "scrollLine": "49"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1727457309,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1727458041871,
+    "read_only": false,
+    "read_only_alternatives": []
+}
